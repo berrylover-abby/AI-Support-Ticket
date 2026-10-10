@@ -8,3 +8,13 @@ class TicketSerializer(serializers.ModelSerializer):
         model = Ticket
         fields = ["id","title","description","created_at"]
         read_only_fields = ["id","created_at"]
+
+class TicketAnalysisSerializer(serializers.Serializer):
+    category = serializers.ChoiceField(
+        choices=["account", "billing", "technical", "other"]
+    )
+    priority = serializers.ChoiceField(
+        choices=["low", "medium", "high"]
+    )
+    summary = serializers.CharField()
+    suggested_reply = serializers.CharField()
