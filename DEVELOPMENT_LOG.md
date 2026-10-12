@@ -1,7 +1,7 @@
 # 开发记录 / Development Log
 
 **更新日期 / Updated:** 2026-10-12  
-**当前进度 / Progress:** 已完成第 1–5 阶段 / Build stages 1–5 completed
+**当前进度 / Progress:** 已完成第 1–6 阶段 / Build stages 1–6 completed
 
 本项目是用于求职展示的轻量 Demo，重点体现 REST API、数据库持久化、结构化分析和人工审核。以下“天数”表示计划中的开发阶段，不代表实际连续日期。
 
@@ -55,6 +55,20 @@ We connected the shared analysis service to API creation: persist the ticket fir
 
 Manual checks covered real analysis and human confirmation, automatic analysis after API submission, and a missing-key failure that returned `201 Created` with `analysis_failed`. Restoring the key allowed the same ticket to be retried successfully. Timeout and refusal handling is implemented but has not been separately simulated. A duplicate-charge example was classified as high priority and corrected to medium by a human, showing why schema constraints still need business-level evaluation.
 
+## 第六天：追溯与简单评估 / Day 6: Traceability and evaluation
+
+先增加模型名称、prompt 版本和分析时间三个字段，通过迁移更新数据库。成功分析时将这些信息与结果一起保存，并在 Admin 中只读显示；旧工单保持空值，不补造历史信息。
+
+We added fields for the requested model name, prompt version, and analysis time, then migrated the database. Successful analysis saves this metadata with the result and displays it read-only in Admin. Older tickets retain empty values instead of invented historical metadata.
+
+随后固定五条样例及预期标签，运行 v1：格式通过 5/5、分类匹配 5/5、优先级匹配 4/5。评估发现重复扣费的优先级偏高，以及回复中存在未确认的产品流程和行动声明。因此将 prompt 更新为 v2，明确优先级规则并限制无依据的承诺。
+
+We defined five fixed cases and expected labels before running v1: 5/5 valid outputs, 5/5 category matches, and 4/5 priority matches. Review found an overly high duplicate-charge priority and unsupported product workflows and action claims. We updated the prompt to v2 with explicit priority rules and restrictions on unsupported commitments.
+
+最后保留 v1 工单，用新工单重测重复扣费和团队中断：两条的格式与标签均通过，重复扣费改为 medium，中断回复不再声称已开始调查。七张评估工单的追溯信息均已保存。v2 是两条针对性回归结果，不代表完整五条或生产准确率；详情见 [评估记录](EVALUATION.md)。
+
+We preserved the v1 tickets and reran duplicate-charge and outage cases as new v2 tickets. Both passed structure and label checks; duplicate-charge priority became medium, and the outage draft stopped claiming an investigation had begun. Metadata is saved for all seven evaluation tickets. These are two targeted v2 regression checks, not a full five-case or production accuracy result. See the [evaluation record](EVALUATION.md).
+
 ## 当前 Demo 流程 / Current demo flow
 
 API 提交工单 → 数据库保存 → 自动触发分析 → 验证并保存建议 → Admin 人工修改并保存 → 明确确认。
@@ -67,5 +81,4 @@ Mock mode is the default. Set `TICKET_AI_MODE=openai` and configure `OPENAI_API_
 
 ## 剩余工作 / Remaining work
 
-- **第六天 / Day 6:** 保存模型、prompt 版本和分析时间，用 5–10 条固定样例评估输出。 / Record model, prompt version, and analysis time; evaluate output with 5–10 fixed examples.
 - **第七天 / Day 7:** 完善安装与 API 文档、Demo 演示流程、架构说明和面试介绍。 / Complete setup and API documentation, the demo script, architecture explanation, and interview presentation.

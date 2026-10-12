@@ -49,4 +49,10 @@ class Ticket(models.Model):
     reviewed_reply = models.TextField(blank=True)
 
 
+    # Record metadata for the most recent successful analysis.
+    analysis_model = models.CharField(max_length=100, blank=True)
+    analysis_prompt_version = models.CharField(max_length=50, blank=True)
+    analyzed_at = models.DateTimeField(null=True, blank=True)
+
+
 

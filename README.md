@@ -4,7 +4,7 @@ A small support-ticket workflow that demonstrates backend engineering and practi
 
 For current implementation progress and the bilingual build walkthrough, see [Development Log / 开发记录](DEVELOPMENT_LOG.md).
 
-Build stages 1–5 are complete. The API, persistence, real-model integration, review workflow, and manual retry are working. Model/prompt metadata, the fixed evaluation set, and final interview documentation remain planned for stages 6–7.
+Build stages 1–6 are complete. The API, persistence, real-model integration, review workflow, manual retry, analysis metadata, and simple evaluation are working. Final interview documentation remains planned for stage 7.
 
 ## MVP goal
 
@@ -59,6 +59,12 @@ Priorities: `low`, `medium`, `high`. Judge priority by the user's practical impa
 - **Structured output:** Request strict JSON Schema output for `category`, `priority`, `summary`, and `suggested_reply`; validate the result with a DRF serializer before saving.
 - **Logging/errors:** Use Django's standard logging. Record analysis outcomes and provider/validation failures without logging secrets. Preserve the ticket on failure and support manual retry.
 - **Human-in-the-loop:** Keep AI suggestions separate from human-confirmed values. Confirmation is an explicit human action in Admin.
+
+## Traceability and evaluation
+
+Successful analyses store the requested model name, prompt version, and completion time alongside the original suggestion. These fields are read-only in Admin. Historical tickets without recorded metadata retain empty values. The fields describe the latest successful analysis, not a complete attempt history or the provider's resolved model snapshot.
+
+The [bilingual evaluation record](EVALUATION.md) contains five fixed cases and expected labels. Prompt v1 produced 5/5 valid outputs, 5/5 category matches, and 4/5 priority matches. Human review also identified unsupported reply commitments. Prompt v2 adds explicit priority and reply rules; two targeted regression cases passed structure and label checks. The remaining three cases have not been rerun with v2, and these small-sample results do not establish production accuracy.
 
 ## Run locally on Windows
 

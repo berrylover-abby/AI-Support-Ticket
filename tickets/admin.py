@@ -17,7 +17,15 @@ logger = logging.getLogger(__name__)
 class TicketAdmin(admin.ModelAdmin):
     list_display = ("id", "title", "status", "created_at")
     list_filter = ("status",)
-    readonly_fields = ("ai_result", "status", "created_at")
+    # Keep generated analysis data and metadata read-only.
+    readonly_fields = (
+        "ai_result",
+        "status",
+        "created_at",
+        "analysis_model",
+        "analysis_prompt_version",
+        "analyzed_at",
+    )
     actions = ["run_analysis", "confirm_review"]
 
     @admin.action(description="Analyze selected tickets")

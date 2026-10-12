@@ -2,9 +2,8 @@
 from .models import Ticket
 from .serializers import TicketAnalysisSerializer
 import os
-
-from .llm import LLMError, analyze_with_llm
-
+from .llm import LLMError, MODEL_NAME, PROMPT_VERSION, analyze_with_llm
+from django.utils import timezone
 
 def mock_analyze_ticket(ticket):
     return {
@@ -51,6 +50,13 @@ def analyze_and_save_ticket(ticket):
     ticket.reviewed_reply = result["suggested_reply"]
     ticket.status = Ticket.Status.PENDING_REVIEW
 
+    # Record metadata after the analysis passes validation.
+    mode = os.environ.get("TICKET_AI_MODE", "mock")
+    ticket.analysis_model = MODEL_NAME if mode == "openai" else "mock"
+    ticket.analysis_prompt_version = PROMPT_VERSION if mode == "openai" else "mock-v1"
+    ticket.analyzed_at = timezone.now()
+
+    # Save the analysis and its metadata together.
     ticket.save(update_fields=[
         "ai_result",
         "reviewed_category",
@@ -58,4 +64,7 @@ def analyze_and_save_ticket(ticket):
         "reviewed_summary",
         "reviewed_reply",
         "status",
+        "analysis_model",
+        "analysis_prompt_version",
+        "analyzed_at",
     ])
