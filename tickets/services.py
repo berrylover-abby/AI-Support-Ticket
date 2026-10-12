@@ -1,9 +1,12 @@
 
 from .models import Ticket
 from .serializers import TicketAnalysisSerializer
+import os
+
+from .llm import LLMError, analyze_with_llm
 
 
-def analyze_ticket(ticket):
+def mock_analyze_ticket(ticket):
     return {
         "category": "other",
         "priority": "medium",
@@ -13,6 +16,19 @@ def analyze_ticket(ticket):
             "We will review your request and follow up shortly."
         ),
     }
+
+def analyze_ticket(ticket):
+    # Default to mock mode for local development.
+    mode = os.environ.get("TICKET_AI_MODE", "mock")
+
+    if mode == "mock":
+        return mock_analyze_ticket(ticket)
+
+    if mode == "openai":
+        return analyze_with_llm(ticket)
+
+    # Reject unsupported modes instead of silently choosing a provider.
+    raise LLMError("Unsupported TICKET_AI_MODE. Use mock or openai.")
 
 
 def analyze_and_save_ticket(ticket):

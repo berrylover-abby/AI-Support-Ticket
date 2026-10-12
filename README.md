@@ -2,6 +2,10 @@
 
 A small support-ticket workflow that demonstrates backend engineering and practical LLM integration. A customer submits a ticket, the backend saves it and asks an LLM for a structured analysis, and a human reviews and confirms the result.
 
+For current implementation progress and the bilingual build walkthrough, see [Development Log / 开发记录](DEVELOPMENT_LOG.md).
+
+Build stages 1–5 are complete. The API, persistence, real-model integration, review workflow, and manual retry are working. Model/prompt metadata, the fixed evaluation set, and final interview documentation remain planned for stages 6–7.
+
 ## MVP goal
 
 Complete one reliable end-to-end workflow in one week. The AI assists a human; it does not make or send the final customer-facing response on its own.
@@ -51,10 +55,44 @@ Priorities: `low`, `medium`, `high`. Judge priority by the user's practical impa
 - **Backend/API:** Python, Django, Django REST Framework.
 - **Database:** SQLite, accessed through Django ORM and migrations.
 - **Human review:** Django Admin.
-- **LLM:** Provider and model are not selected yet; no API key is available at project start. Develop the workflow with a deterministic mock analysis first, then connect one provider when credentials are available.
-- **Structured output:** Require a fixed JSON shape for `category`, `priority`, `summary`, and `suggested_reply`; validate fields and allowed values in the backend before saving a successful analysis.
+- **LLM:** OpenAI Responses API with `gpt-4.1-mini`, called through Python's standard-library HTTP client. A deterministic mock remains available for local development. The application does not require the OpenAI SDK.
+- **Structured output:** Request strict JSON Schema output for `category`, `priority`, `summary`, and `suggested_reply`; validate the result with a DRF serializer before saving.
 - **Logging/errors:** Use Django's standard logging. Record analysis outcomes and provider/validation failures without logging secrets. Preserve the ticket on failure and support manual retry.
 - **Human-in-the-loop:** Keep AI suggestions separate from human-confirmed values. Confirmation is an explicit human action in Admin.
+
+## Run locally on Windows
+
+From the project directory in PowerShell:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe manage.py migrate
+.\.venv\Scripts\python.exe manage.py createsuperuser
+.\.venv\Scripts\python.exe manage.py runserver
+```
+
+Mock mode is the default and needs no API key. For real analysis, stop the server and run the following in the same terminal:
+
+```powershell
+# Read the key without displaying it or including it in a command.
+$ticketApiKey = Read-Host "Paste API key" -AsSecureString
+$env:OPENAI_API_KEY = [System.Net.NetworkCredential]::new("", $ticketApiKey).Password
+$env:TICKET_AI_MODE = "openai"
+.\.venv\Scripts\python.exe manage.py runserver
+```
+
+Environment variables apply to the current terminal and programs started from it. Real requests require an API key with available credits and incur API usage charges.
+
+## Current API behavior
+
+- `POST /api/tickets/`: submit `title` and `description`. Save the ticket first, then analyze synchronously. `201 Created` means the ticket was persisted; inspect `status` to determine the analysis outcome.
+- `GET /api/tickets/`: return tickets, newest first.
+- `GET /api/tickets/{id}/`: return one ticket.
+
+The API returns `status` and `ai_result` as read-only fields. A successful analysis sets `pending_review`; an expected analysis failure sets `analysis_failed`. In Admin at `/admin/tickets/ticket/`, select **Analyze selected tickets** to retry a failed ticket. Edit and save the review fields before selecting **Confirm selected tickets**.
+
+API-created tickets are analyzed automatically. Admin-created tickets start in `pending_analysis` and require the analysis action. The HTTP client uses a 20-second network timeout; analysis runs within the request, so submission waits for it.
 
 ## One-week build plan
 

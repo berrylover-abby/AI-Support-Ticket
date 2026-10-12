@@ -6,8 +6,22 @@ from .models import Ticket
 class TicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
-        fields = ["id","title","description","created_at"]
-        read_only_fields = ["id","created_at"]
+        fields = [
+            "id",
+            "title",
+            "description",
+            "created_at",
+            "status",
+            "ai_result",
+        ]
+
+        # These fields are generated and managed by the backend.
+        read_only_fields = [
+            "id",
+            "created_at",
+            "status",
+            "ai_result",
+        ]
 
 class TicketAnalysisSerializer(serializers.Serializer):
     category = serializers.ChoiceField(

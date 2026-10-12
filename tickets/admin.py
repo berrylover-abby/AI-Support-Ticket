@@ -7,6 +7,8 @@ from rest_framework.exceptions import ValidationError
 from .models import Ticket
 from .services import analyze_and_save_ticket
 
+from .llm import LLMError
+
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +20,7 @@ class TicketAdmin(admin.ModelAdmin):
     readonly_fields = ("ai_result", "status", "created_at")
     actions = ["run_analysis", "confirm_review"]
 
-    @admin.action(description="Analyze selected tickets (mock)")
+    @admin.action(description="Analyze selected tickets")
     def run_analysis(self, request, queryset):
         for ticket in queryset:
             if ticket.status not in [
@@ -34,7 +36,9 @@ class TicketAdmin(admin.ModelAdmin):
 
             try:
                 analyze_and_save_ticket(ticket)
+
             except ValidationError:
+                # Handle analysis data that fails backend validation.
                 logger.warning(
                     "Ticket analysis failed: ticket_id=%s reason=invalid_output",
                     ticket.id,
@@ -46,7 +50,24 @@ class TicketAdmin(admin.ModelAdmin):
                     f"Analysis failed for ticket {ticket.id}: invalid output.",
                     level=messages.ERROR,
                 )
+
+            except LLMError as error:
+                # Preserve the ticket and allow a manual retry.
+                logger.warning(
+                    "Ticket analysis failed: ticket_id=%s reason=%s",
+                    ticket.id,
+                    error,
+                )
+                ticket.status = Ticket.Status.ANALYSIS_FAILED
+                ticket.save(update_fields=["status"])
+                self.message_user(
+                    request,
+                    f"Analysis failed for ticket {ticket.id}: {error}",
+                    level=messages.ERROR,
+                )
+
             else:
+                # Report success only after analysis has been saved.
                 logger.info(
                     "Ticket analysis succeeded: ticket_id=%s",
                     ticket.id,
