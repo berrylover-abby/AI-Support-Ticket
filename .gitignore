@@ -4,3 +4,7 @@ __pycache__/
 *.py[cod]
 db.sqlite3
 .env
+
+# Keep personal build notes and interview preparation local.
+DEMO_GUIDE.md
+DEVELOPMENT_LOG.md

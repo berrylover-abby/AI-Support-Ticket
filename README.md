@@ -1,20 +1,12 @@
-# AI Support Ticket Demo
+# AI Support Ticket
 
-A small support-ticket workflow that demonstrates backend engineering and practical LLM integration. A customer submits a ticket, the backend saves it and asks an LLM for a structured analysis, and a human reviews and confirms the result.
+An AI-powered support ticket system built with Django. It turns support requests into structured categories, priorities, summaries, and reply drafts, with human review before confirmation.
 
-For current implementation progress and the bilingual build walkthrough, see [Development Log / 开发记录](DEVELOPMENT_LOG.md).
-
-For the demonstration script, architecture, and interview explanation, see [Demo Guide / 演示与面试说明](DEMO_GUIDE.md).
-
-Build stages 1–7 are implemented, including a single-page submission interface and bilingual interview documentation. The API, persistence, real-model integration, human review, manual retry, analysis metadata, and simple evaluation form one complete local demo.
+Tickets are persisted before analysis, so provider errors do not lose the original request. Reviewers can edit suggestions, retry failed analysis, and inspect the original AI output and model metadata.
 
 ![Live analysis of an invoice request, awaiting human review](docs/images/demo.png)
 
-## MVP goal
-
-Complete one reliable end-to-end workflow in one week. The AI assists a human; it does not make or send the final customer-facing response on its own.
-
-## User flow
+## Workflow
 
 1. Submit a title and description on the homepage, which calls the REST API.
 2. Save the ticket before starting AI analysis.
@@ -25,7 +17,7 @@ Complete one reliable end-to-end workflow in one week. The AI assists a human; i
 
 If analysis fails, keep the ticket, record the failure, show an analysis-failed state, and allow a human to retry it.
 
-## MVP scope
+## Features
 
 - REST endpoints to create tickets and retrieve a ticket list and ticket details.
 - Persistent ticket, AI suggestion, and human-confirmed result data.
@@ -34,7 +26,7 @@ If analysis fails, keep the ticket, record the failure, show an analysis-failed 
 - A responsive submission page with loading feedback, analysis results, failure messages, and a link to human review.
 - Basic application logging and clear handling of invalid model output and provider errors.
 - Traceability for the model, prompt version, analysis time, and original AI suggestion.
-- A small fixed evaluation set of 5–10 sample tickets to check output shape and expected category/priority.
+- Five fixed evaluation cases and two targeted prompt regression checks.
 
 ### Categories and priorities
 
@@ -46,16 +38,7 @@ Priorities: `low`, `medium`, `high`. Judge priority by the user's practical impa
 
 `pending_analysis` → `pending_review` → `confirmed`, with `analysis_failed` for unsuccessful analysis. A failed ticket can be retried.
 
-## Explicitly out of scope
-
-- Customer accounts, customer authorization, and multi-tenant support. Admin uses Django's built-in administrator login.
-- Sending replies or integrating with email, chat, Zendesk, or Intercom.
-- Knowledge bases, retrieval-augmented generation, or vector databases.
-- Multiple agents, tools, or complex orchestration.
-- Automatic assignment, SLA management, notifications, and analytics dashboards.
-- React, a separate frontend build pipeline, and a custom review dashboard. The small submission page is served by Django; review stays in Admin.
-
-## Technology choices
+## Technology
 
 - **Backend/API:** Python, Django, Django REST Framework.
 - **Frontend:** A Django template, plain CSS, and JavaScript `fetch`; no separate build or frontend dependencies.
@@ -68,9 +51,11 @@ Priorities: `low`, `medium`, `high`. Judge priority by the user's practical impa
 
 ## Traceability and evaluation
 
-Successful analyses store the requested model name, prompt version, and completion time alongside the original suggestion. These fields are read-only in Admin. Historical tickets without recorded metadata retain empty values. The fields describe the latest successful analysis, not a complete attempt history or the provider's resolved model snapshot.
+Successful analyses store the requested model name, prompt version, and completion time alongside the original suggestion. These fields are read-only in Admin and describe the latest successful analysis. Human-reviewed values are stored separately.
 
-The [bilingual evaluation record](EVALUATION.md) contains five fixed cases and expected labels. Prompt v1 produced 5/5 valid outputs, 5/5 category matches, and 4/5 priority matches. Human review also identified unsupported reply commitments. Prompt v2 adds explicit priority and reply rules; two targeted regression cases passed structure and label checks. The remaining three cases have not been rerun with v2, and these small-sample results do not establish production accuracy.
+The [evaluation record](EVALUATION.md) documents expected labels, observed outputs, and prompt revisions. The five-case v1 baseline produced 5/5 valid outputs, 5/5 category matches, and 4/5 priority matches. Prompt v2 adds explicit priority and reply rules; two targeted regression cases passed structure and label checks.
+
+See [Architecture](ARCHITECTURE.md) for request handling, validation, state transitions, and component responsibilities.
 
 ## Run locally on Windows
 
@@ -96,9 +81,9 @@ $env:TICKET_AI_MODE = "openai"
 
 Environment variables apply to the current terminal and programs started from it. Real requests require an API key with available credits and incur API usage charges.
 
-Open `http://127.0.0.1:8000/` to submit a ticket. The page identifies mock or live mode. **Review this ticket** opens the saved ticket in Admin, where the administrator login is required. Mock returns fixed sample suggestions, so it demonstrates the workflow rather than classification quality.
+Open `http://127.0.0.1:8000/` to submit a ticket. The page identifies mock or live mode. **Review this ticket** opens the saved ticket in Admin, where the administrator login is required. Mock returns fixed sample suggestions for development and workflow testing.
 
-## Current API behavior
+## REST API
 
 - `POST /api/tickets/`: submit `title` and `description`. Save the ticket first, then analyze synchronously. `201 Created` means the ticket was persisted; inspect `status` to determine the analysis outcome.
 - `GET /api/tickets/`: return tickets, newest first.
@@ -108,25 +93,15 @@ The API returns `status` and `ai_result` as read-only fields. A successful analy
 
 API-created tickets are analyzed automatically. Admin-created tickets start in `pending_analysis` and require the analysis action. The HTTP client uses a 20-second network timeout; analysis runs within the request, so submission waits for it.
 
-## One-week build plan
+### Create a ticket
 
-Keep each day focused on one small result; move on only when the current slice works.
+Send this JSON body to `POST /api/tickets/`:
 
-1. **Day 1 — Project setup:** Create the Django project and app, configure DRF and SQLite, and make the first migration.
-2. **Day 2 — Ticket API:** Define the ticket data model and implement ticket creation, list, and detail endpoints.
-3. **Day 3 — Review workflow:** Add statuses and AI/review fields; make tickets usable in Django Admin for human review and confirmation.
-4. **Day 4 — AI boundary:** Implement mock analysis, fixed-schema validation, and failure state/retry behavior.
-5. **Day 5 — Real LLM:** Connect one provider if an API key is available; keep the mock usable for local development.
-6. **Day 6 — Traceability and evaluation:** Store model/prompt metadata and original suggestions; run the 5–10 sample-ticket evaluation and fix obvious issues.
-7. **Day 7 — Interview readiness:** Write setup and API documentation, prepare a short demo flow, explain architecture and limitations, and add a small submission page after the backend is complete.
+```json
+{
+  "title": "Need a copy of my invoice",
+  "description": "My payment succeeded and my account works normally. I need an invoice for my expense records."
+}
+```
 
-If time gets tight, finish the end-to-end backend flow and Admin review before adding any UI.
-
-## Definition of done
-
-- A ticket can be submitted through the API and remains saved if AI analysis fails.
-- Successful analysis produces validated values from the allowed category and priority sets.
-- A human can review, edit, and confirm a suggestion in Django Admin.
-- The original AI suggestion and confirmed result can be distinguished and inspected later.
-- The evaluation examples and a repeatable demo flow are documented.
-- The homepage submits to the existing API and displays the saved ticket and analysis outcome.
+The response includes the saved ticket ID, input fields, creation time, status, and structured `ai_result`. Invalid input returns `400 Bad Request`.
