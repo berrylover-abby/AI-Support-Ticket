@@ -1,0 +1,106 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Support Ticket Demo</title>
+    <link rel="stylesheet" href="{% static 'tickets/demo.css' %}">
+    <!-- Run after the page's form and result elements are available. -->
+    <script src="{% static 'tickets/demo.js' %}" defer></script>
+</head>
+<body>
+    <main class="page">
+        <header class="page-header">
+            <p class="eyebrow">AI SUPPORT TICKET DEMO</p>
+            <h1>Submit a support request</h1>
+            <p>Get a category, priority, summary and reply draft for human review.</p>
+            <a href="/admin/tickets/ticket/">Open review queue</a>
+            <!-- Disclose whether suggestions are generated or simulated. -->
+            <div class="mode-note">
+                {% if analysis_mode == "openai" %}
+                    <span class="mode-badge">Live AI</span>
+                    <span>Suggestions require human review.</span>
+                {% elif analysis_mode == "mock" %}
+                    <span class="mode-badge">Mock demo</span>
+                    <span>Fixed sample output. No API key required.</span>
+                {% else %}
+                    <span class="mode-badge">Configuration required</span>
+                    <span>Check the analysis mode before submitting.</span>
+                {% endif %}
+            </div>
+        </header>
+
+        <div class="workspace">
+            <!-- Collect the ticket input. -->
+            <section class="card">
+                <h2>Your request</h2>
+
+                <form id="ticket-form">
+                    {% csrf_token %}
+
+                    <label for="title">Title</label>
+                    <input
+                        id="title"
+                        name="title"
+                        type="text"
+                        maxlength="200"
+                        placeholder="Need a copy of my invoice"
+                        required
+                    >
+
+                    <label for="description">Description</label>
+                    <textarea
+                        id="description"
+                        name="description"
+                        rows="7"
+                        placeholder="Describe the issue and how it affects you."
+                        required
+                    ></textarea>
+
+                    <button id="submit-button" type="submit">
+                        Analyze ticket
+                    </button>
+
+                    <!-- Announce progress and errors to the user. -->
+                    <p id="feedback" role="status" aria-live="polite"></p>
+                </form>
+            </section>
+
+            <!-- Display the saved ticket and its analysis. -->
+            <section class="card" aria-labelledby="result-heading">
+                <h2 id="result-heading">Analysis</h2>
+                <p id="empty-state">Your analysis will appear here after submission.</p>
+
+                <div id="ticket-result" hidden>
+                    <p id="ticket-status"></p>
+
+                    <div id="analysis-result" hidden>
+                        <dl class="labels">
+                            <div>
+                                <dt>Category</dt>
+                                <dd id="result-category"></dd>
+                            </div>
+                            <div>
+                                <dt>Priority</dt>
+                                <dd id="result-priority"></dd>
+                            </div>
+                        </dl>
+
+                        <h3>Summary</h3>
+                        <p id="result-summary"></p>
+
+                        <h3>Suggested reply</h3>
+                        <p id="result-reply"></p>
+                        <p class="review-note">Draft only. A person reviews and confirms the reply.</p>
+                    </div>
+
+                    <a id="review-link" href="/admin/tickets/ticket/">
+                        Review this ticket
+                    </a>
+                </div>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

@@ -1,5 +1,6 @@
 import logging
-
+import os
+from django.shortcuts import render
 from rest_framework import generics
 from rest_framework.exceptions import ValidationError
 
@@ -44,3 +45,9 @@ class TicketListCreateView(generics.ListCreateAPIView):
 class TicketDetailView(generics.RetrieveAPIView):
     queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
+
+
+def ticket_demo(request):
+    # Disclose the server's analysis mode on the submission page.
+    mode = os.environ.get("TICKET_AI_MODE", "mock")
+    return render(request, "tickets/demo.html", {"analysis_mode": mode})

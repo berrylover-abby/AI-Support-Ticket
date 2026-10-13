@@ -1,0 +1,149 @@
+/* Use a restrained palette and the device's native font. */
+:root {
+    color-scheme: light;
+    --ink: #203b31;
+    --muted: #617269;
+    --accent: #175c43;
+    --border: #dce5df;
+    --canvas: #e1f0e4;
+}
+
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+}
+[hidden] { display: none !important; }
+a { color: var(--accent); text-underline-offset: 4px; }
+a:hover { text-decoration-thickness: 2px; }
+button, input, textarea { font: inherit; }
+
+/* Keep the header and workspace on the same alignment grid. */
+.page { max-width: 1120px; margin: 0 auto; padding: 48px 28px; }
+.page-header { margin-bottom: 28px; }
+.eyebrow {
+    margin: 0 0 10px;
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+}
+h1 {
+    margin: 0;
+    font-size: clamp(32px, 4vw, 46px);
+    line-height: 1.2;
+    letter-spacing: -0.035em;
+    font-weight: 650;
+}
+.page-header > p:not(.eyebrow) { color: var(--muted); max-width: 640px; }
+.page-header > a { font-size: 14px; font-weight: 600; }
+.mode-note {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin-top: 18px;
+    color: var(--muted);
+    font-size: 13px;
+}
+.mode-badge {
+    padding: 3px 9px;
+    border: 1px solid #cbdcd2;
+    border-radius: 6px;
+    background: #eaf2ed;
+    color: var(--accent);
+    font-weight: 600;
+}
+.workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+}
+.card {
+    min-width: 0;
+    padding: 28px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 4px 20px rgba(32, 59, 49, 0.035);
+}
+h2 { margin: 0 0 22px; font-size: 20px; line-height: 1.4; }
+h3 { margin: 24px 0 8px; font-size: 15px; font-weight: 650; }
+
+/* Give inputs clear labels, comfortable spacing, and visible focus. */
+label { display: block; margin: 18px 0 7px; font-size: 15px; font-weight: 600; }
+input, textarea {
+    display: block;
+    width: 100%;
+    padding: 11px 13px;
+    border: 1px solid #cbd6cf;
+    border-radius: 8px;
+    background: #fff;
+    color: var(--ink);
+}
+textarea { resize: vertical; min-height: 160px; }
+input::placeholder, textarea::placeholder { color: #6c7871; }
+input:focus, textarea:focus {
+    outline: 2px solid #388261;
+    outline-offset: 2px;
+}
+button {
+    width: 100%;
+    margin-top: 22px;
+    padding: 12px 18px;
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    background: linear-gradient(180deg, #24704f, var(--accent));
+    color: #fff;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 3px 6px rgba(23, 92, 67, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    transition: transform 160ms ease, box-shadow 160ms ease;
+}
+/* Add subtle depth and tactile feedback without distracting animation. */
+button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    background: linear-gradient(180deg, #287957, #175c43);
+    box-shadow: 0 5px 10px rgba(23, 92, 67, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+button:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.16), 0 1px 2px rgba(23, 92, 67, 0.12);
+}
+button:disabled { opacity: 0.65; cursor: wait; }
+a:focus-visible, button:focus-visible { outline: 2px solid #388261; outline-offset: 4px; }
+#feedback { min-height: 24px; margin: 12px 0 0; color: var(--muted); font-size: 15px; }
+#feedback.error, #ticket-status.failed { color: #9a3030; }
+#feedback.success { color: var(--accent); }
+
+/* Keep model text readable without treating it as HTML. */
+#empty-state { margin: 0; padding: 40px 0 56px; color: var(--muted); }
+#ticket-status { margin: 0 0 20px; font-size: 14px; font-weight: 600; }
+.labels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 0; }
+dt { margin-bottom: 6px; color: var(--muted); font-size: 12px; }
+dd { display: inline-block; margin: 0; padding: 4px 10px; border-radius: 6px; background: #eff3f0; font-size: 15px; font-weight: 600; text-transform: capitalize; }
+#result-priority[data-priority="low"] { background: #e7f3ea; color: #245b36; }
+#result-priority[data-priority="medium"] { background: #fff1d5; color: #7c5410; }
+#result-priority[data-priority="high"] { background: #fce8e7; color: #922f2f; }
+#result-summary, #result-reply { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+#result-reply { padding: 16px; border: 1px solid var(--border); border-radius: 8px; background: #f7faf8; }
+.review-note { margin: 12px 0 22px; color: var(--muted); font-size: 13px; }
+#review-link { font-size: 14px; font-weight: 600; }
+
+/* Stack the cards on small screens and prevent horizontal overflow. */
+@media (max-width: 760px) {
+    .page { padding: 30px 16px; }
+    .workspace { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+    .card { padding: 22px; }
+}
+
+/* Respect the user's reduced-motion preference. */
+@media (prefers-reduced-motion: reduce) {
+    button { transition: none; transform: none !important; }
+}

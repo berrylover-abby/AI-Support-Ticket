@@ -4,7 +4,11 @@ A small support-ticket workflow that demonstrates backend engineering and practi
 
 For current implementation progress and the bilingual build walkthrough, see [Development Log / 开发记录](DEVELOPMENT_LOG.md).
 
-Build stages 1–6 are complete. The API, persistence, real-model integration, review workflow, manual retry, analysis metadata, and simple evaluation are working. Final interview documentation remains planned for stage 7.
+For the demonstration script, architecture, and interview explanation, see [Demo Guide / 演示与面试说明](DEMO_GUIDE.md).
+
+Build stages 1–7 are implemented, including a single-page submission interface and bilingual interview documentation. The API, persistence, real-model integration, human review, manual retry, analysis metadata, and simple evaluation form one complete local demo.
+
+![Live analysis of an invoice request, awaiting human review](docs/images/demo.png)
 
 ## MVP goal
 
@@ -12,7 +16,7 @@ Complete one reliable end-to-end workflow in one week. The AI assists a human; i
 
 ## User flow
 
-1. Submit a ticket with a title and description through the REST API.
+1. Submit a title and description on the homepage, which calls the REST API.
 2. Save the ticket before starting AI analysis.
 3. Ask the LLM for a category, priority, short summary, and suggested reply.
 4. Validate the structured result, then save it with the ticket.
@@ -27,6 +31,7 @@ If analysis fails, keep the ticket, record the failure, show an analysis-failed 
 - Persistent ticket, AI suggestion, and human-confirmed result data.
 - One LLM request per analysis, with validated structured output.
 - Django Admin as the human review interface.
+- A responsive submission page with loading feedback, analysis results, failure messages, and a link to human review.
 - Basic application logging and clear handling of invalid model output and provider errors.
 - Traceability for the model, prompt version, analysis time, and original AI suggestion.
 - A small fixed evaluation set of 5–10 sample tickets to check output shape and expected category/priority.
@@ -43,16 +48,17 @@ Priorities: `low`, `medium`, `high`. Judge priority by the user's practical impa
 
 ## Explicitly out of scope
 
-- User accounts, permissions, and multi-tenant support.
+- Customer accounts, customer authorization, and multi-tenant support. Admin uses Django's built-in administrator login.
 - Sending replies or integrating with email, chat, Zendesk, or Intercom.
 - Knowledge bases, retrieval-augmented generation, or vector databases.
 - Multiple agents, tools, or complex orchestration.
-- Automatic assignment, SLA management, notifications, analytics dashboards, or a polished customer-facing frontend.
-- React in the first version. Consider a small UI only after the backend workflow is complete.
+- Automatic assignment, SLA management, notifications, and analytics dashboards.
+- React, a separate frontend build pipeline, and a custom review dashboard. The small submission page is served by Django; review stays in Admin.
 
 ## Technology choices
 
 - **Backend/API:** Python, Django, Django REST Framework.
+- **Frontend:** A Django template, plain CSS, and JavaScript `fetch`; no separate build or frontend dependencies.
 - **Database:** SQLite, accessed through Django ORM and migrations.
 - **Human review:** Django Admin.
 - **LLM:** OpenAI Responses API with `gpt-4.1-mini`, called through Python's standard-library HTTP client. A deterministic mock remains available for local development. The application does not require the OpenAI SDK.
@@ -90,6 +96,8 @@ $env:TICKET_AI_MODE = "openai"
 
 Environment variables apply to the current terminal and programs started from it. Real requests require an API key with available credits and incur API usage charges.
 
+Open `http://127.0.0.1:8000/` to submit a ticket. The page identifies mock or live mode. **Review this ticket** opens the saved ticket in Admin, where the administrator login is required. Mock returns fixed sample suggestions, so it demonstrates the workflow rather than classification quality.
+
 ## Current API behavior
 
 - `POST /api/tickets/`: submit `title` and `description`. Save the ticket first, then analyze synchronously. `201 Created` means the ticket was persisted; inspect `status` to determine the analysis outcome.
@@ -110,7 +118,7 @@ Keep each day focused on one small result; move on only when the current slice w
 4. **Day 4 — AI boundary:** Implement mock analysis, fixed-schema validation, and failure state/retry behavior.
 5. **Day 5 — Real LLM:** Connect one provider if an API key is available; keep the mock usable for local development.
 6. **Day 6 — Traceability and evaluation:** Store model/prompt metadata and original suggestions; run the 5–10 sample-ticket evaluation and fix obvious issues.
-7. **Day 7 — Interview readiness:** Write setup and API documentation, prepare a short demo flow, and explain architecture, tradeoffs, and limitations.
+7. **Day 7 — Interview readiness:** Write setup and API documentation, prepare a short demo flow, explain architecture and limitations, and add a small submission page after the backend is complete.
 
 If time gets tight, finish the end-to-end backend flow and Admin review before adding any UI.
 
@@ -121,3 +129,4 @@ If time gets tight, finish the end-to-end backend flow and Admin review before a
 - A human can review, edit, and confirm a suggestion in Django Admin.
 - The original AI suggestion and confirmed result can be distinguished and inspected later.
 - The evaluation examples and a repeatable demo flow are documented.
+- The homepage submits to the existing API and displays the saved ticket and analysis outcome.

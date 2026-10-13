@@ -1,7 +1,8 @@
 # 开发记录 / Development Log
 
-**更新日期 / Updated:** 2026-10-12  
-**当前进度 / Progress:** 已完成第 1–6 阶段 / Build stages 1–6 completed
+**更新日期 / Updated:** 2026-10-13
+
+**当前进度 / Progress:** 已完成第 1–7 阶段及前端联调 / Build stages 1–7 and frontend integration checks completed
 
 本项目是用于求职展示的轻量 Demo，重点体现 REST API、数据库持久化、结构化分析和人工审核。以下“天数”表示计划中的开发阶段，不代表实际连续日期。
 
@@ -71,14 +72,24 @@ We preserved the v1 tickets and reran duplicate-charge and outage cases as new v
 
 ## 当前 Demo 流程 / Current demo flow
 
-API 提交工单 → 数据库保存 → 自动触发分析 → 验证并保存建议 → Admin 人工修改并保存 → 明确确认。
+首页通过 API 提交工单 → 数据库保存 → 自动触发分析 → 验证并保存建议 → 页面展示结果 → Admin 人工修改并保存 → 明确确认。
 
-Submit through API → Persist in database → Automatically analyze → Validate and save suggestions → Edit and save the human review in Admin → Explicitly confirm.
+Submit through the homepage and API → Persist in database → Automatically analyze → Validate and save suggestions → Display the result → Edit and save the human review in Admin → Explicitly confirm.
 
 默认使用 mock 模式；设置 `TICKET_AI_MODE=openai` 并配置 `OPENAI_API_KEY` 后使用真实模型。Admin 新建的工单需手动触发分析。最终回复只保存，不发送给客户。
 
 Mock mode is the default. Set `TICKET_AI_MODE=openai` and configure `OPENAI_API_KEY` to use the real model. Tickets created in Admin require manual analysis. Final replies are saved rather than sent to customers.
 
-## 剩余工作 / Remaining work
+## 第七天：演示页面与项目收尾 / Day 7: Demo page and project handoff
 
-- **第七天 / Day 7:** 完善安装与 API 文档、Demo 演示流程、架构说明和面试介绍。 / Complete setup and API documentation, the demo script, architecture explanation, and interview presentation.
+先整理双语演示说明，包含三分钟流程、架构图、设计取舍和面试介绍。后端完整后，增加一页 Django 模板，配合 CSS 和原生 JavaScript 调用现有 API。页面展示运行模式、提交等待状态、分类、优先级、摘要和回复草稿，并提供 Admin 审核链接。使用 `textContent` 显示模型文字，提交期间禁用表单以减少重复操作。
+
+We prepared a bilingual demo guide with a three-minute walkthrough, architecture, design tradeoffs, and an interview pitch. After completing the backend, we added one Django template with CSS and plain JavaScript against the existing API. It displays the analysis mode, submission progress, four analysis fields, and an Admin review link. Model text is rendered with `textContent`, and the form is disabled while submitting to reduce duplicate actions.
+
+已通过首页提交真实发票请求，得到 billing / low 和待审核状态，并保存截图到 README。独立 mock 页面已验证空白输入提示、成功提交、结果展示和审核链接；这类流程检查不计入模型质量评估。
+
+A live invoice request submitted through the homepage produced billing / low and a pending-review state; its screenshot is included in the README. Independent mock checks verified whitespace validation, successful submission, result display, and the review link. These workflow checks are separate from model-quality evaluation.
+
+最后分别验证服务器停止时的网络错误提示，以及缺少 key 时“已保存但分析失败”的页面状态。失败工单可以从页面链接打开 Admin，标题和描述仍然保留，按钮恢复可用。本轮本地检查未调用付费模型；没有额外模拟超时或拒绝响应，也没有把前端样例算入固定评估集。
+
+Final browser checks covered a stopped-server network error and the saved-but-analysis-failed state with a missing key. The failure ticket opens in Admin with its title and description preserved, and the submit button becomes available again. These local checks made no paid model requests; they did not separately simulate provider timeout or refusal, and frontend examples were not added to the fixed evaluation results.
